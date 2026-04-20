@@ -14,16 +14,17 @@ function isFreeCheap(price) {
 export default function App() {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const [userState, setUserState] = useState({})
   const [starredSet, setStarredSet] = useState(new Set())
   const [activeFilter, setActiveFilter] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [groupByNeighborhood, setGroupByNeighborhood] = useState(false)
   const [userLocation, setUserLocation] = useState(
     () => localStorage.getItem('nyc-list-location') || 'Williamsburg, Brooklyn'
   )
   const [editingLocation, setEditingLocation] = useState(false)
 
-  // Auth listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
@@ -31,11 +32,11 @@ export default function App() {
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) setShowAuthModal(false)
     })
     return () => subscription.unsubscribe()
   }, [])
 
-  // Load state from Supabase + starred from localStorage when user logs in
   useEffect(() => {
     if (!user) { setUserState({}); setStarredSet(new Set()); return }
     supabase
@@ -67,6 +68,7 @@ export default function App() {
   }
 
   const handleToggleDone = async name => {
+    if (!user) { setShowAuthModal(true); return }
     const current = userState[name]
     if (current === 'done') {
       setUserState(s => { const u = { ...s }; delete u[name]; return u })
@@ -78,16 +80,19 @@ export default function App() {
   }
 
   const handlePass = async name => {
+    if (!user) { setShowAuthModal(true); return }
     setUserState(s => ({ ...s, [name]: 'pass' }))
     await upsertState(name, 'pass')
   }
 
   const handleRestore = async name => {
+    if (!user) return
     setUserState(s => { const u = { ...s }; delete u[name]; return u })
     await deleteState(name)
   }
 
   const handleToggleStar = name => {
+    if (!user) { setShowAuthModal(true); return }
     setStarredSet(prev => {
       const next = new Set(prev)
       if (next.has(name)) next.delete(name)
@@ -104,7 +109,6 @@ export default function App() {
 
   const handleSignOut = () => supabase.auth.signOut()
 
-  // Filter activities
   const mainActivities = ACTIVITIES.filter(a => {
     if (userState[a.name] === 'pass') return false
 
@@ -113,7 +117,8 @@ export default function App() {
       if (
         !a.name.toLowerCase().includes(q) &&
         !a.desc.toLowerCase().includes(q) &&
-        !a.cat.toLowerCase().includes(q)
+        !a.cat.toLowerCase().includes(q) &&
+        !a.neighborhood.toLowerCase().includes(q)
       ) return false
     }
 
@@ -143,10 +148,20 @@ export default function App() {
     )
   }
 
-  if (!user) return <AuthPage />
-
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Auth modal */}
+      {showAuthModal && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div onClick={e => e.stopPropagation()}>
+            <AuthPage onClose={() => setShowAuthModal(false)} />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -178,20 +193,31 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-slate-500 hidden sm:block">{user.email}</span>
-            <button
-              onClick={handleSignOut}
-              className="text-slate-500 hover:text-slate-700 transition-colors"
-            >
-              Sign out
-            </button>
+            {user ? (
+              <>
+                <span className="text-slate-500 hidden sm:block">{user.email}</span>
+                <button
+                  onClick={handleSignOut}
+                  className="text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Log in to save progress
+              </button>
+            )}
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Progress summary */}
-        <ProgressSummary userState={userState} />
+        {/* Progress summary — only shown when logged in */}
+        {user && <ProgressSummary userState={userState} />}
 
         {/* Filters */}
         <FilterBar
@@ -202,16 +228,32 @@ export default function App() {
         />
 
         {/* Count row */}
-        <div className="text-sm text-slate-500">
-          <span className="font-medium text-slate-700">{mainActivities.length}</span> shown
-          {' · '}
-          <span className="font-medium text-slate-700">{doneCount}</span> done total
-          {passedActivities.length > 0 && (
-            <> · <span className="font-medium text-slate-700">{passedActivities.length}</span> passed</>
-          )}
-          {starredSet.size > 0 && (
-            <> · <span className="font-medium text-amber-500">★ {starredSet.size}</span> starred</>
-          )}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-slate-500">
+            <span className="font-medium text-slate-700">{mainActivities.length}</span> shown
+            {user && (
+              <>
+                {' · '}
+                <span className="font-medium text-slate-700">{doneCount}</span> done total
+                {passedActivities.length > 0 && (
+                  <> · <span className="font-medium text-slate-700">{passedActivities.length}</span> passed</>
+                )}
+                {starredSet.size > 0 && (
+                  <> · <span className="font-medium text-amber-500">★ {starredSet.size}</span> starred</>
+                )}
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => setGroupByNeighborhood(g => !g)}
+            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
+              groupByNeighborhood
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700'
+            }`}
+          >
+            Group by neighborhood
+          </button>
         </div>
 
         {/* Table */}
@@ -223,10 +265,11 @@ export default function App() {
           starredSet={starredSet}
           onToggleStar={handleToggleStar}
           userLocation={userLocation}
+          groupByNeighborhood={groupByNeighborhood}
         />
 
         {/* Passed section */}
-        <PassedSection activities={passedActivities} onRestore={handleRestore} />
+        {user && <PassedSection activities={passedActivities} onRestore={handleRestore} />}
       </main>
     </div>
   )
