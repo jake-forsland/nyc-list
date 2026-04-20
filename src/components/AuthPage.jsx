@@ -35,7 +35,7 @@ export default function AuthPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-3xl mb-2">🗽</div>
-          <h1 className="text-2xl font-bold text-slate-900">NYC List</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Stuff to do in NYC</h1>
           <p className="text-slate-500 text-sm mt-1">Your personal NYC activities tracker</p>
         </div>
 

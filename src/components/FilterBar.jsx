@@ -1,5 +1,5 @@
 const CATEGORIES = ['Outdoors', 'Culture', 'Entertainment', 'Food', 'Neighborhood', 'Hidden Gems']
-const ATTRIBUTES = ['Dog-friendly', 'Free/cheap', 'Low tourist', 'Not done yet']
+const ATTRIBUTES = ['Dog-friendly', 'Free/cheap', 'Low tourist', 'Not done yet', 'Starred']
 
 export default function FilterBar({ activeFilter, onFilterChange, searchTerm, onSearchChange }) {
   const isActive = (type, value) => activeFilter?.type === type && activeFilter?.value === value
@@ -53,7 +53,7 @@ export default function FilterBar({ activeFilter, onFilterChange, searchTerm, on
             onClick={() => handleAttribute(attr)}
             className={`${btnBase} ${isActive('attribute', attr) ? 'bg-amber-500 text-white' : inactiveBtn}`}
           >
-            {attr === 'Dog-friendly' ? '🐶 Dog-friendly' : attr}
+            {attr === 'Dog-friendly' ? '🐶 Dog-friendly' : attr === 'Starred' ? '★ Starred' : attr}
           </button>
         ))}
 
