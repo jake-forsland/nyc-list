@@ -7,7 +7,7 @@
 // Schema per item:
 // {
 //   name: string,
-//   cat: 'Outdoors' | 'Culture' | 'Entertainment' | 'Food' | 'Neighborhood' | 'Hidden',
+//   cat: 'Outdoors' | 'Culture' | 'Entertainment' | 'Food' | 'Explore' | 'Hidden',
 //   desc: string,          // 1–2 sentence description
 //   price: string,         // human-readable price string
 //   tourist: 1 | 2 | 3,   // 1 = low, 2 = medium, 3 = high
@@ -1047,7 +1047,7 @@ export const ACTIVITIES = [
 
   {
     name: "Williamsburg Bridge walk",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Walk the Williamsburg Bridge into Manhattan (or vice versa). Less crowded than the Brooklyn Bridge, equally good views, and it starts right in your backyard.",
     price: "Free",
     tourist: 1,
@@ -1058,7 +1058,7 @@ export const ACTIVITIES = [
   },
   {
     name: "DUMBO",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Brooklyn neighborhood with the iconic Manhattan Bridge framed-view on Washington St. Gallery-hopping, excellent restaurants, and easy access to Brooklyn Bridge Park waterfront.",
     price: "Free to walk",
     tourist: 2,
@@ -1069,7 +1069,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Greenwich Village walk",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Bleecker St, Washington Square Park, NYU territory. Historic jazz clubs, great pizza, and extraordinary density of cultural history. See where Hendrix and Poe lived, where Bob Dylan played.",
     price: "Free",
     tourist: 2,
@@ -1080,7 +1080,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Lower East Side",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Tenement history collides with late-night bars. Orchard St, Rivington, Essex Market. Old-school Jewish deli culture alongside new-wave restaurants. Great to walk on a weekend afternoon.",
     price: "Free to walk",
     tourist: 1,
@@ -1091,7 +1091,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Chinatown walk",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Canal St, Mott St, and Doyers St — the 'Bloody Angle,' a hidden bend in the street with a genuinely storied history. Dim sum, dumplings, and produce vendors spilling onto the sidewalk.",
     price: "Free to walk; food $–$$",
     tourist: 2,
@@ -1102,7 +1102,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Harlem walk + food",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Marcus Garvey Park, 125th St, excellent soul food. Red Rooster and Sylvia's are the anchor restaurants. One of the few neighborhoods left that still feels genuinely like New York.",
     price: "Free to walk; food $$",
     tourist: 1,
@@ -1113,7 +1113,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Astoria, Queens",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Greek food, the Bohemian Hall beer garden (with a real outdoor courtyard), the Museum of the Moving Image, and Astoria Park along the East River. Excellent and consistently underrated.",
     price: "Free to walk; food $$",
     tourist: 1,
@@ -1124,7 +1124,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Jackson Heights, Queens",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Per the UN, the most linguistically diverse urban neighborhood on earth. Incredible South Asian and Latin American food. The 7 train ride itself is part of the experience.",
     price: "Free to walk; food $–$$",
     tourist: 1,
@@ -1135,7 +1135,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Financial District walk (weekend)",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "The ghost of old New York — Federal Hall, Fraunces Tavern, the Charging Bull, and some of the oldest architecture in the city. Best visited on a weekend when it's quiet and feels nothing like Midtown.",
     price: "Free",
     tourist: 2,
@@ -1146,7 +1146,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Brooklyn Heights Promenade",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Arguably the best view of the Manhattan skyline from anywhere in the city — hovering above the BQE with the whole skyline laid out in front of you. Combine with Brooklyn Bridge Park piers below.",
     price: "Free",
     tourist: 2,
@@ -1157,7 +1157,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Staten Island Ferry",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Free round-trip across the harbor with unobstructed views of the Statue of Liberty, Governor's Island, and Lower Manhattan. Has a bar on board and a weekday happy hour. Walk around St. George when you get there.",
     price: "Free",
     tourist: 2,
@@ -1168,7 +1168,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Industry City (Sunset Park)",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Old waterfront manufacturing campus turned creative hub in Sunset Park, Brooklyn. Good food vendors, interesting shops, events, and waterfront access. Less hyped than similar Brooklyn developments.",
     price: "Free to explore",
     tourist: 1,
@@ -1179,7 +1179,7 @@ export const ACTIVITIES = [
   },
   {
     name: "The Strand Bookstore",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "'18 miles of books' on Broadway near Union Square. Four floors of new, used, and rare books. The basement bargain section and the rare books room upstairs are essential. A New York landmark since 1927.",
     price: "Free to browse",
     tourist: 2,
@@ -1190,7 +1190,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Brooklyn Flea",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Top-tier outdoor flea market with vintage clothing, antiques, records, art, and excellent food vendors. Runs weekends in DUMBO (Saturdays) and Williamsburg (Sundays) from spring through fall. Indoor at Industry City in winter.",
     price: "Free entry",
     tourist: 1,
@@ -1201,7 +1201,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Bushwick Collective street art walk",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Several city blocks of large-scale, ever-changing murals on the warehouses and walls of Bushwick, curated by local organizer Joe Ficalora since 2011. One of the largest outdoor street art galleries in the world. New murals painted every June.",
     price: "Free",
     tourist: 1,
@@ -1212,7 +1212,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Chelsea gallery hopping",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Chelsea has 300+ contemporary galleries including David Zwirner, Paula Cooper, Hauser & Wirth, and C24. All are free. Thursday evenings many spaces host open receptions with free drinks.",
     price: "Free",
     tourist: 1,
@@ -1223,7 +1223,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Coney Island",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "Old-timey beachfront amusement area with the legendary Cyclone roller coaster (sit in the back car), Nathan's Famous hot dogs, the boardwalk, and the Sideshow. A genuine tourist trap that's still worth doing once.",
     price: "Free to walk; rides and food extra",
     tourist: 3,
@@ -1234,7 +1234,7 @@ export const ACTIVITIES = [
   },
   {
     name: "Snug Harbor (Staten Island)",
-    cat: "Neighborhood",
+    cat: "Explore",
     desc: "An 83-acre cultural center and botanical garden on Staten Island — Greek Revival buildings, beautiful gardens, and almost no one there. Ten minutes from the ferry terminal. Gorgeous and completely overlooked.",
     price: "Free grounds access; some events ticketed",
     tourist: 1,

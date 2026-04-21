@@ -17,7 +17,11 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [userState, setUserState] = useState({})
   const [starredSet, setStarredSet] = useState(new Set())
-  const [activeFilter, setActiveFilter] = useState(null)
+
+  // Multi-select filters: categories (AND with attributes), attributes (OR within)
+  const [selectedCategories, setSelectedCategories] = useState(new Set())
+  const [selectedAttributes, setSelectedAttributes] = useState(new Set())
+
   const [searchTerm, setSearchTerm] = useState('')
   const [groupByNeighborhood, setGroupByNeighborhood] = useState(false)
   const [userLocation, setUserLocation] = useState(
@@ -107,8 +111,30 @@ export default function App() {
     localStorage.setItem('nyc-list-location', location)
   }
 
+  const handleToggleCategory = cat => {
+    setSelectedCategories(prev => {
+      const next = new Set(prev)
+      if (next.has(cat)) next.delete(cat)
+      else next.add(cat)
+      return next
+    })
+  }
+
+  const handleToggleAttribute = attr => {
+    setSelectedAttributes(prev => {
+      const next = new Set(prev)
+      if (next.has(attr)) next.delete(attr)
+      else next.add(attr)
+      return next
+    })
+  }
+
   const handleSignOut = () => supabase.auth.signOut()
 
+  // Filter logic:
+  //   - selectedCategories: item must be in at least one selected category (OR within categories)
+  //   - selectedAttributes: item must match at least one selected attribute (OR within attributes)
+  //   - Both groups combine with AND (must satisfy both)
   const mainActivities = ACTIVITIES.filter(a => {
     if (userState[a.name] === 'pass') return false
 
@@ -122,16 +148,18 @@ export default function App() {
       ) return false
     }
 
-    if (activeFilter) {
-      if (activeFilter.type === 'category') {
-        if (a.cat !== activeFilter.value) return false
-      } else if (activeFilter.type === 'attribute') {
-        if (activeFilter.value === 'Dog-friendly' && !a.dog) return false
-        if (activeFilter.value === 'Free/cheap' && !isFreeCheap(a.price)) return false
-        if (activeFilter.value === 'Low tourist' && a.tourist !== 1) return false
-        if (activeFilter.value === 'Not done yet' && userState[a.name] === 'done') return false
-        if (activeFilter.value === 'Starred' && !starredSet.has(a.name)) return false
-      }
+    if (selectedCategories.size > 0 && !selectedCategories.has(a.cat)) return false
+
+    if (selectedAttributes.size > 0) {
+      const ok = [...selectedAttributes].some(attr => {
+        if (attr === 'Dog-friendly') return a.dog
+        if (attr === 'Free/cheap') return isFreeCheap(a.price)
+        if (attr === 'Low tourist') return a.tourist === 1
+        if (attr === 'Not done yet') return userState[a.name] !== 'done'
+        if (attr === 'Starred') return starredSet.has(a.name)
+        return false
+      })
+      if (!ok) return false
     }
 
     return true
@@ -216,13 +244,19 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Progress summary — only shown when logged in */}
-        {user && <ProgressSummary userState={userState} />}
+        {/* Progress summary — category cards double as category filters */}
+        {user && (
+          <ProgressSummary
+            userState={userState}
+            selectedCategories={selectedCategories}
+            onToggleCategory={handleToggleCategory}
+          />
+        )}
 
-        {/* Filters */}
+        {/* Attribute filters + search */}
         <FilterBar
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
+          selectedAttributes={selectedAttributes}
+          onToggleAttribute={handleToggleAttribute}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />

@@ -5,7 +5,7 @@ const CAT_COLORS = {
   Culture:       { bg: '#EEEDFE', text: '#3C3489' },
   Entertainment: { bg: '#FAEEDA', text: '#633806' },
   Food:          { bg: '#FAECE7', text: '#712B13' },
-  Neighborhood:  { bg: '#EAF3DE', text: '#27500A' },
+  Explore:       { bg: '#EAF3DE', text: '#27500A' },
   Hidden:        { bg: '#FBEAF0', text: '#72243E' },
 }
 

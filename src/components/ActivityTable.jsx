@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const CAT_COLORS = {
   Outdoors:      { bg: '#E1F5EE', text: '#0F6E56' },
   Culture:       { bg: '#EEEDFE', text: '#3C3489' },
   Entertainment: { bg: '#FAEEDA', text: '#633806' },
   Food:          { bg: '#FAECE7', text: '#712B13' },
-  Neighborhood:  { bg: '#EAF3DE', text: '#27500A' },
+  Explore:       { bg: '#EAF3DE', text: '#27500A' },
   Hidden:        { bg: '#FBEAF0', text: '#72243E' },
 }
 
@@ -22,33 +22,92 @@ function getMapUrl(name, userLocation) {
   return `https://www.google.com/maps/dir/${from}/${to}`
 }
 
+// ── Image resolution ──────────────────────────────────────────────────────────
+
+async function fetchWikiImage(title) {
+  try {
+    const r = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=400&origin=*`
+    )
+    const data = await r.json()
+    const page = Object.values(data.query?.pages || {})[0]
+    return page?.thumbnail?.source ?? null
+  } catch {
+    return null
+  }
+}
+
+async function resolvePhoto(name) {
+  // Step 1: exact Wikipedia title
+  const img1 = await fetchWikiImage(name)
+  if (img1) return img1
+
+  // Step 2: clean the name and try again
+  const cleaned = name
+    .replace(/\s*\([^)]*\)/g, '')                              // strip (parentheticals)
+    .replace(/\s+(walk|tour|food tour|game|cruise|rehearsal viewings|street art walk)$/i, '')
+    .replace(/\s*[+\/].*$/, '')                                // take first part of "X / Y"
+    .replace(/\s*,.*$/, '')                                    // drop ", Brooklyn" etc
+    .trim()
+
+  if (cleaned && cleaned !== name) {
+    const img2 = await fetchWikiImage(cleaned)
+    if (img2) return img2
+  }
+
+  // Step 3: Wikipedia OpenSearch → find best matching article
+  try {
+    const r = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(cleaned || name)}&limit=3&format=json&origin=*`
+    )
+    const [, titles] = await r.json()
+    for (const title of (titles || []).slice(0, 2)) {
+      const img = await fetchWikiImage(title)
+      if (img) return img
+    }
+  } catch { /* ignore */ }
+
+  // Fallback: stable per-activity image from Picsum (seeded by name)
+  return `https://picsum.photos/seed/${encodeURIComponent(name)}/400/300`
+}
+
+// ── ActivityPhoto ─────────────────────────────────────────────────────────────
+
 function ActivityPhoto({ name, wide = false }) {
   const [photoUrl, setPhotoUrl] = useState(null)
-  const [tried, setTried] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const containerRef = useRef(null)
+  const fetchStarted = useRef(false)
 
   useEffect(() => {
-    fetch(
-      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(name)}&prop=pageimages&format=json&pithumbsize=400&origin=*`
+    const el = containerRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !fetchStarted.current) {
+          fetchStarted.current = true
+          observer.disconnect()
+          resolvePhoto(name).then(url => {
+            setPhotoUrl(url)
+            setLoading(false)
+          })
+        }
+      },
+      { rootMargin: '400px' }
     )
-      .then(r => r.json())
-      .then(data => {
-        const pages = data.query?.pages
-        const page = pages && Object.values(pages)[0]
-        setPhotoUrl(page?.thumbnail?.source || null)
-      })
-      .catch(() => setPhotoUrl(null))
-      .finally(() => setTried(true))
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [name])
 
-  if (!tried) {
+  if (loading) {
     return wide
-      ? <div className="w-full h-40 rounded-lg bg-slate-100 animate-pulse" />
-      : <div className="w-10 h-10 rounded-lg bg-slate-100 animate-pulse shrink-0" />
+      ? <div ref={containerRef} className="w-full h-40 rounded-lg bg-slate-100 animate-pulse" />
+      : <div ref={containerRef} className="w-10 h-10 rounded-lg bg-slate-100 animate-pulse shrink-0" />
   }
 
   if (!photoUrl) {
-    if (wide) return null
-    return <div className="w-10 h-10 rounded-lg bg-slate-100 shrink-0" />
+    return wide ? null : <div className="w-10 h-10 rounded-lg bg-slate-100 shrink-0" />
   }
 
   return (
@@ -63,6 +122,8 @@ function ActivityPhoto({ name, wide = false }) {
     />
   )
 }
+
+// ── Misc helpers ──────────────────────────────────────────────────────────────
 
 function MapIcon() {
   return (
@@ -98,6 +159,8 @@ function groupByNeighborhoodFn(activities) {
   })
   return Object.entries(map).sort(([a], [b]) => a.localeCompare(b))
 }
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export default function ActivityTable({
   activities, userState, onToggleDone, onPass,
@@ -196,11 +259,8 @@ export default function ActivityTable({
           </span>
         </td>
         <td className="px-3 py-3 text-[11px] text-slate-500 max-w-[130px]">{a.neighborhood}</td>
-        <td className="px-3 py-3 text-center">
-          {a.dog
-            ? <span className="text-xs font-medium text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">Yes</span>
-            : <span className="text-xs text-slate-300">—</span>
-          }
+        <td className="px-3 py-3 text-center text-base">
+          {a.dog ? '🐕' : <span className="text-slate-300 text-xs">—</span>}
         </td>
         <td className="px-3 py-3">
           <div className="flex items-center gap-1">
@@ -255,7 +315,7 @@ export default function ActivityTable({
                   {TOURIST_LABELS[a.tourist]} tourist
                 </span>
                 {a.dog && (
-                  <span className="text-xs font-medium text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">🐶 Dog OK</span>
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full">🐕 Dog OK</span>
                 )}
               </div>
               <div className="text-xs text-slate-500 mt-2">
